@@ -720,7 +720,7 @@ function init() {
   }
   initUI();
   pushHistory(); // point de départ pour undo
-  setTool('select');
+  setTool('pencil'); // crayon par défaut
   draw();
 }
 

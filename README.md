@@ -43,7 +43,7 @@ Le conteneur est une simple image `nginx:alpine` qui sert les fichiers statiques
 
 ## Utilisation
 
-Sélectionnez un outil dans la barre de gauche, puis cliquez/glissez sur le canevas :
+Sélectionnez un outil dans la barre de gauche (**crayon par défaut**), puis cliquez/glissez sur le canevas :
 
 | Outil | Raccourci | Comportement |
 |-------|-----------|--------------|

@@ -173,6 +173,17 @@ function drawLine(ctx, el) {
 function drawPath(ctx, el) {
   if (!el.points || el.points.length === 0) return;
   ctx.save();
+  if (el.points.length === 1) {
+    // point isolé (simple clic) → un trait rond (dot)
+    const [x, y] = el.points[0];
+    ctx.fillStyle = el.stroke || '#1f2937';
+    const r = Math.max(1, el.strokeWidth / 2);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
   ctx.beginPath();
   ctx.moveTo(el.points[0][0], el.points[0][1]);
   for (let i = 1; i < el.points.length; i++) {

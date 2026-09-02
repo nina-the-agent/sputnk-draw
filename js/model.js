@@ -81,6 +81,11 @@ export function hitTest(elements, x, y) {
 export function pointInElement(el, px, py) {
   const { x, y, w, h } = el;
   if (el.type === 'path' && el.points) {
+    if (el.points.length === 1) {
+      // point isolé (simple clic) : hit si près du centre du dot
+      const [x, y] = el.points[0];
+      return Math.hypot(px - x, py - y) <= Math.max(el.strokeWidth / 2 + 2, 6);
+    }
     // hit-test sur le polygone approché du trait
     for (let i = 0; i < el.points.length - 1; i++) {
       const [ax, ay] = el.points[i];

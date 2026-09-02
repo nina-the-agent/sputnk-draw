@@ -87,6 +87,16 @@ function drawDraft() {
   if (!state.draft) return;
   const d = state.draft;
   if (d.type === 'path' && d.points && d.points.length) {
+    if (d.points.length === 1) {
+      // aperçu d'un point isolé pendant le clic
+      const [x, y] = d.points[0];
+      ctx.fillStyle = d.stroke;
+      const r = Math.max(1, d.strokeWidth / 2);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
     ctx.beginPath();
     ctx.moveTo(d.points[0][0], d.points[0][1]);
     for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i][0], d.points[i][1]);
@@ -426,7 +436,8 @@ canvas.addEventListener('pointerup', (e) => {
   const mode = drag.mode;
 
   if (mode === 'pencil') {
-    if (drag.moved && state.draft.points.length > 1) {
+    // un simple clic doit créer un point (dot) : on commit dès qu'il y a ≥1 point
+    if (state.draft.points.length >= 1) {
       state.elements.push({ ...state.draft, id: makeElement('path').id });
       pushHistory();
     }

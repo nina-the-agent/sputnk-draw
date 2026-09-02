@@ -8,6 +8,12 @@ export function render(ctx, elements, opts = {}) {
     gridSize = 24,
     bgColor = '#ffffff',
     noClear = false,
+    // vue/zoom pour la grille infinie (passés par le contrôleur)
+    zoom = 1,
+    panX = 0,
+    panY = 0,
+    cssW = null,
+    cssH = null,
   } = opts;
 
   if (!noClear) {
@@ -16,7 +22,7 @@ export function render(ctx, elements, opts = {}) {
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   }
 
-  if (gridOn) drawGrid(ctx, gridSize);
+  if (gridOn) drawGrid(ctx, { size: gridSize, zoom, panX, panY, cssW, cssH });
 
   for (const el of elements) {
     if (el.type === 'path') {
@@ -33,17 +39,33 @@ export function render(ctx, elements, opts = {}) {
   }
 }
 
-function drawGrid(ctx, size) {
+// Grille infini : couvre tout le viewport, réglée pour rester lisible à tout zoom.
+// Le pas s'adapte (x2) pour que l'espacement à l'écran ne devienne ni dense ni
+// trop large, et le trait fait toujours ~1 px écran (~1/zoom en unités monde).
+function drawGrid(ctx, o) {
+  const zoom = o.zoom || 1;
+  const base = Math.max(8, o.size || 24);
+  let step = base;
+  while (step * zoom < 22) step *= 2; // garde ~>=22 px écran entre deux lignes
+  // dimensions visibles (px écran) → unités monde
+  const w = o.cssW || ctx.canvas.width;
+  const h = o.cssH || ctx.canvas.height;
+  const worldW = w / zoom;
+  const worldH = h / zoom;
+  const x0 = Math.floor(((0 - o.panX) / zoom) / step) * step;
+  const y0 = Math.floor(((0 - o.panY) / zoom) / step) * step;
+
   ctx.save();
   ctx.strokeStyle = '#e5e7eb';
-  ctx.lineWidth = 1;
-  const w = ctx.canvas.width, h = ctx.canvas.height;
+  ctx.lineWidth = 1 / zoom;
   ctx.beginPath();
-  for (let x = 0; x <= w; x += size) {
-    ctx.moveTo(x, 0); ctx.lineTo(x, h);
+  for (let x = x0; x <= x0 + worldW; x += step) {
+    ctx.moveTo(x, (0 - o.panY) / zoom);
+    ctx.lineTo(x, (0 - o.panY) / zoom + worldH);
   }
-  for (let y = 0; y <= h; y += size) {
-    ctx.moveTo(0, y); ctx.lineTo(w, y);
+  for (let y = y0; y <= y0 + worldH; y += step) {
+    ctx.moveTo((0 - o.panX) / zoom, y);
+    ctx.lineTo((0 - o.panX) / zoom + worldW, y);
   }
   ctx.stroke();
   ctx.restore();

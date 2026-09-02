@@ -26,7 +26,7 @@ html, body {
 
 /* ---------- Toolbar ---------- */
 #toolbar {
-  width: 128px;
+  width: 168px;
   flex-shrink: 0;
   background: var(--panel);
   border-right: 1px solid var(--border);

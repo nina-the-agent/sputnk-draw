@@ -287,6 +287,29 @@ function zoomBy(f) {
   zoomAt(rect.left + cw / 2, rect.top + ch / 2, f);
 }
 
+// Le crayon suit la souris en continu : on repose des points à intervalle
+// ~2.5 px écran (en coordonnées monde, donc divisé par le zoom). Un déplacement
+// rapide entre deux pointermove est subdivisé pour qu'il n'y ait jamais de trou,
+// le trait reste donc fluide et colle à la souris. Les points bruts sont stockés
+// tels quels dans l'élément → on pourra vectoriser/lisser le tracé après coup.
+function appendPencilPoint(draft, x, y) {
+  const pts = draft.points;
+  if (!pts.length) { pts.push([x, y]); return; }
+  const lx = pts[pts.length - 1][0], ly = pts[pts.length - 1][1];
+  const dx = x - lx, dy = y - ly;
+  const d = Math.hypot(dx, dy);
+  const spacing = Math.max(0.7, 2.5 / Math.max(state.zoom, 0.05));
+  if (d <= spacing) {
+    // petit glissement : on prolonge le dernier point pour suivre sans perdre
+    pts[pts.length - 1] = [x, y];
+    return;
+  }
+  const n = Math.min(500, Math.max(1, Math.round(d / spacing)));
+  for (let i = 1; i <= n; i++) {
+    pts.push([lx + (dx * i) / n, ly + (dy * i) / n]);
+  }
+}
+
 // ---------- Interactions souris ----------
 let drag = null; // {mode, startWorld, startEls, moved}
 
@@ -365,9 +388,7 @@ canvas.addEventListener('pointermove', (e) => {
   }
 
   if (drag.mode === 'pencil') {
-    const pts = state.draft.points;
-    const last = pts[pts.length - 1];
-    if (Math.hypot(p.x - last[0], p.y - last[1]) > 1) pts.push([p.x, p.y]);
+    appendPencilPoint(state.draft, p.x, p.y);
     state.draft.stroke = state.strokeColor;
     state.draft.strokeWidth = state.strokeWidth;
     drag.moved = true;

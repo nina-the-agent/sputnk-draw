@@ -17,9 +17,18 @@ export function render(ctx, elements, opts = {}) {
   } = opts;
 
   if (!noClear) {
+    // Le fond et le clear doivent couvrir TOUT le canvas device, quel que soit
+    // le pan/zoom : on revient à l'identité (écran device), on efface+remplit,
+    // puis on restaure la transform monde active (dpr·translate·scale pour
+    // l'écran, ou le transform du contexte export). Sans ça, en dézoomant fort
+    // le fond (coordonnées monde ancrées à l'origine) ne couvre plus le
+    // viewport → bords de « feuille » et pixels du frame précédent non repeints.
+    const saved = ctx.getTransform();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.setTransform(saved);
   }
 
   if (gridOn) drawGrid(ctx, { size: gridSize, zoom, panX, panY, cssW, cssH });

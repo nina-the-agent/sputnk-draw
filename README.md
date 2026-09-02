@@ -63,7 +63,7 @@ Sélectionnez un outil dans la barre de gauche, puis cliquez/glissez sur le cane
 - **Sauvegarder / Ouvrir** : format `.spdraw` (tous les éléments, ré-édition complète).
 - **Copier/Coller** : `Ctrl/Cmd+C` / `Ctrl/Cmd+V` (duplique les éléments sélectionnés).
 
-Raccourcis : `V` sélection, `P` crayon, `L` trait, `A` flèche, `T` texte, `F` pot, `Esc` désélection, `Ctrl+Z` annuler, `Ctrl+Shift+Z` refaire. Molette = zoom, espace + glisser = déplacer la vue.
+Raccourcis : `V` sélection, `P` crayon, `L` trait, `A` flèche, `T` texte, `F` pot, `Esc` désélection, `Ctrl+Z` annuler, `Ctrl+Shift+Z` refaire. **Molette = zoom** (centré sous le curseur), **clic droit (ou espace + glisser) = déplacer la vue**, `Ctrl+C`/`Ctrl+V` = copier/coller. Le canvas est **infini** : dézoomez tant que vous voulez, la grille reste régulière.
 
 ## Formats
 

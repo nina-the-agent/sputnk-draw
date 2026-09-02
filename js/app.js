@@ -67,6 +67,11 @@ function draw() {
     gridOn: state.gridOn,
     gridSize: state.gridSize,
     bgColor: '#ffffff',
+    zoom: state.zoom,
+    panX: state.panX,
+    panY: state.panY,
+    cssW: cw,
+    cssH: ch,
   });
   // overlay sélection
   for (const el of state.selected) {
@@ -236,10 +241,12 @@ function initUI() {
   document.getElementById('clear-all').addEventListener('click', () => {
     if (!state.elements.length) return;
     if (confirm('Effacer tout le dessin ?')) {
-      pushHistory();
+      const prev = state.elements;
       state.elements = [];
       state.selected = [];
+      pushHistory();
       draw();
+      void prev;
     }
   });
 
@@ -260,16 +267,32 @@ function updatePresetActive() {
   });
 }
 
-function zoomBy(f) {
-  const nz = Math.min(6, Math.max(0.2, state.zoom * f));
+// Zoom centré sous le curseur (canvas infini) : on garde fixe le point monde
+// qui est sous le pointeur. `cx/cy` sont les coordonnées CSS dans le canvas.
+function zoomAt(clientX, clientY, factor) {
+  const rect = canvas.getBoundingClientRect();
+  const cx = clientX - rect.left;
+  const cy = clientY - rect.top;
+  const wx = (cx - state.panX) / state.zoom;
+  const wy = (cy - state.panY) / state.zoom;
+  const nz = Math.min(8, Math.max(0.02, state.zoom * factor));
   state.zoom = nz;
+  state.panX = cx - wx * nz;
+  state.panY = cy - wy * nz;
   draw();
+}
+
+function zoomBy(f) {
+  const rect = canvas.getBoundingClientRect();
+  zoomAt(rect.left + cw / 2, rect.top + ch / 2, f);
 }
 
 // ---------- Interactions souris ----------
 let drag = null; // {mode, startWorld, startEls, moved}
 
 canvas.addEventListener('pointerdown', (e) => {
+  // clic droit ou espace = pan (géré plus bas), jamais un outil
+  if (e.button === 2 || spaceHeld) return;
   const p = toWorld(e.clientX, e.clientY);
   canvas.setPointerCapture(e.pointerId);
 
@@ -382,8 +405,8 @@ canvas.addEventListener('pointerup', (e) => {
 
   if (mode === 'pencil') {
     if (drag.moved && state.draft.points.length > 1) {
-      pushHistory();
       state.elements.push({ ...state.draft, id: makeElement('path').id });
+      pushHistory();
     }
     state.draft = null;
     drag = null;
@@ -430,9 +453,9 @@ canvas.addEventListener('pointerup', (e) => {
       el.label = prompt('Texte de la flèche (optionnel) :', '') || '';
     }
 
-    pushHistory();
     state.elements.push(el);
     state.selected = [el];
+    pushHistory();
     state.draft = null;
     drag = null;
     draw();
@@ -477,17 +500,17 @@ function nearestAnchor(anchors, x, y, radius) {
 
 function fillAt(p) {
   const hit = hitTest(state.elements, p.x, p.y);
-  pushHistory();
   if (hit && SHAPE_TYPES.includes(hit.type)) {
     hit.fill = state.fillColor;
   }
+  pushHistory();
   draw();
 }
 
 function addElement(el) {
-  pushHistory();
   state.elements.push(el);
   state.selected = [el];
+  pushHistory();
   draw();
 }
 
@@ -509,10 +532,10 @@ document.addEventListener('keydown', (e) => {
   }
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (state.selected.length) {
-      pushHistory();
       const ids = new Set(state.selected.map(s => s.id));
       state.elements = state.elements.filter(el => !ids.has(el.id));
       state.selected = [];
+      pushHistory();
       draw();
     }
     return;
@@ -533,7 +556,6 @@ function copySelection() {
 }
 function pasteSelection() {
   if (!clipboard.length) return;
-  pushHistory();
   const ids = new Map();
   for (const c of clipboard) {
     const id = makeElement('rect').id;
@@ -548,6 +570,7 @@ function pasteSelection() {
   }));
   state.elements.push(...newEls);
   state.selected = newEls;
+  pushHistory();
   draw();
 }
 
@@ -627,25 +650,30 @@ function openNative(e) {
   e.target.value = '';
 }
 
-// ---------- Pan (espace + glisser) et zoom molette ----------
-let spaceHeld = false, pans = null;
+// ---------- Pan (clic droit OU espace + glisser) et zoom molette ----------
+let spaceHeld = false, panState = null;
 canvas.addEventListener('pointerdown', (e) => {
-  if (spaceHeld) { pans = { sx: toWorld(e.clientX, e.clientY), px0: state.panX, py0: state.panY }; }
+  if (e.button === 2 || (e.button === 0 && spaceHeld)) {
+    panState = { lastX: e.clientX, lastY: e.clientY };
+    e.preventDefault();
+  }
 });
 canvas.addEventListener('pointermove', (e) => {
-  if (pans && spaceHeld) {
-    const p = toWorld(e.clientX, e.clientY);
-    state.panX = pans.px0 + (p.x - pans.sx.x);
-    state.panY = pans.py0 + (p.y - pans.sx.y);
+  if (panState) {
+    state.panX += e.clientX - panState.lastX;
+    state.panY += e.clientY - panState.lastY;
+    panState.lastX = e.clientX;
+    panState.lastY = e.clientY;
     draw();
   }
 });
-document.addEventListener('pointerup', () => { pans = null; });
+document.addEventListener('pointerup', () => { panState = null; });
 document.addEventListener('keydown', (e) => { if (e.key === ' ') spaceHeld = true; });
-document.addEventListener('keyup', (e) => { if (e.key === ' ') { spaceHeld = false; pans = null; } });
+document.addEventListener('keyup', (e) => { if (e.key === ' ') { spaceHeld = false; } });
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
-  zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1);
+  zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.1 : 1 / 1.1);
 }, { passive: false });
 
 // ---------- Init ----------

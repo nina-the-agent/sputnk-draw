@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sputnk Draw</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="toolbar">
+      <div class="brand">🎨<span>Sputnk<span class="h">Draw</span></span></div>
+
+      <div class="tool-group" id="selection-tools">
+        <button data-tool="select" title="Sélection (V)" class="active">🖱️<span>Déplacer</span></button>
+      </div>
+
+      <div class="tool-group">
+        <button data-tool="pencil" title="Crayon (P)">✏️<span>Crayon</span></button>
+        <button data-tool="line" title="Ligne (L)">📏<span>Trait</span></button>
+        <button data-tool="arrow" title="Flèche (A)">➡️<span>Flèche</span></button>
+        <button data-tool="text" title="Texte (T)">🔤<span>Texte</span></button>
+        <button data-tool="fill" title="Pot de peinture (F)">🪣<span>Remplir</span></button>
+      </div>
+
+      <div class="tool-group">
+        <button data-tool="rect" title="Rectangle (R)">▭<span>Rect</span></button>
+        <button data-tool="ellipse" title="Rond (O)">◯<span>Rond</span></button>
+        <button data-tool="triangle" title="Triangle (Y)">🔺<span>Tri</span></button>
+        <button data-tool="diamond" title="Losange (D)">◆<span>Losa</span></button>
+        <button data-tool="parallelogram" title="Parallélogramme">▱<span>Para</span></button>
+      </div>
+
+      <div class="tool-group colors">
+        <div class="pick-row">
+          <div class="pick-label">Trait</div>
+          <input type="color" id="stroke-color" value="#1f2937" title="Couleur du trait" />
+        </div>
+        <div class="pick-row">
+          <div class="pick-label">Rempl.</div>
+          <input type="color" id="fill-color" value="#bfdbfe" title="Couleur de remplissage" />
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <div id="palette" class="palette"></div>
+        <div class="palette-hint">clic = trait · clic droit = remplissage</div>
+      </div>
+
+      <div class="tool-group" id="stroke-size-wrap" style="display:none">
+        <label class="slider-row">
+          <span>Épaisseur</span>
+          <input type="range" id="stroke-width" min="1" max="30" value="3" />
+          <em id="stroke-width-val">3</em>
+        </label>
+      </div>
+
+      <div class="tool-group view">
+        <button id="grid-toggle" title="Grille">▦<span>Grille</span></button>
+        <button id="undo" title="Annuler (Ctrl+Z)">↩️<span>Undo</span></button>
+        <button id="redo" title="Refaire (Ctrl+Shift+Z)">↪️<span>Redo</span></button>
+      </div>
+
+      <div class="tool-group zoom">
+        <button id="zoom-in" title="Zoom +">＋</button>
+        <button id="zoom-out" title="Zoom −">−</button>
+        <button id="zoom-reset" title="1:1">100%</button>
+      </div>
+    </aside>
+
+    <main id="main">
+      <div class="stage">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="statusbar">
+        <span>💾 100 % local — aucune donnée sur un serveur</span>
+        <span class="spacer"></span>
+        <button id="open-file">📂 Ouvrir</button>
+        <button id="save-file">💾 Sauvegarder (.spdraw)</button>
+        <button id="export-png">📤 PNG</button>
+        <button id="clear-all" class="danger">🗑 Nouveau</button>
+        <input type="file" id="file-input" accept=".spdraw,.json" hidden />
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# dépendances / build
+node_modules/
+dist/
+.vite/
+.next/
+
+# git
+.git/
+*.swp
+.DS_Store
+
+# secrets / env
+.env
+*.key
+*.log
+
+# docker
+Dockerfile
+
+# autres
+.editorconfig
+.pre-commit-config.yaml

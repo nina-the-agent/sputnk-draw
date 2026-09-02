@@ -93,6 +93,7 @@ function drawDraft() {
     ctx.strokeStyle = d.stroke;
     ctx.lineWidth = d.strokeWidth;
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.stroke();
     return;
   }
